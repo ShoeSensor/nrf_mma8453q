@@ -33,8 +33,3 @@
 _build/
 # Backup files
 *~
-
-#eclipse files
-.cproject
-.project
-.settings/
