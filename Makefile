@@ -40,7 +40,8 @@ remduplicates = $(strip $(if $1,$(firstword $1) $(call remduplicates,$(filter-ou
 #Project specific files 
 INC_PATHS  += -I$(abspath $(PROJ_HOME)/config)
 INC_PATHS  += -I$(abspath $(PROJ_HOME)/include)
-C_SOURCE_FILES += $(abspath $(PROJ_HOME)/$(wildcard *.c))
+C_SOURCE_FILES += $(abspath $(PROJ_HOME)/main.c)
+C_SOURCE_FILES += $(abspath $(PROJ_HOME)/src/nrf_mma8453q.c)
 
 
 #source common to all targets
@@ -65,6 +66,7 @@ INC_PATHS += -I$(abspath $(SDK_ROOT)/examples/bsp)
 INC_PATHS += -I$(abspath $(SDK_ROOT)/components/drivers_nrf/nrf_soc_nosd)
 INC_PATHS += -I$(abspath $(SDK_ROOT)/components/device)
 INC_PATHS += -I$(abspath $(SDK_ROOT)/components/libraries/uart)
+INC_PATHS += -I$(abspath $(SDK_ROOT)/components/libraries/button)
 INC_PATHS += -I$(abspath $(SDK_ROOT)/components/drivers_nrf/hal)
 INC_PATHS += -I$(abspath $(SDK_ROOT)/components/drivers_nrf/delay)
 INC_PATHS += -I$(abspath $(SDK_ROOT)/components/libraries/util)
@@ -84,21 +86,19 @@ OUTPUT_BINARY_DIRECTORY = $(OBJECT_DIRECTORY)
 BUILD_DIRECTORIES := $(sort $(OBJECT_DIRECTORY) $(OUTPUT_BINARY_DIRECTORY) $(LISTING_DIRECTORY) )
 
 ifeq ("$(DEBUG)","1")
-    CFLAGS = -DDEBUG -g3
+    CFLAGS = -DDEBUG -g3 -O0
 else
-    CFLAGS = -DNDEBUG
+    CFLAGS = -DNDEBUG -Os
 endif
 
 #flags common to all targets
 CFLAGS += -DBOARD_PCA10028
-CFLAGS += -DSOFTDEVICE_PRESENT
 CFLAGS += -DNRF51
-CFLAGS += -DS110
-CFLAGS += -DBLE_STACK_SUPPORT_REQD
-CFLAGS += -DSWI_DISABLE0
+CFLAGS += -DBOARD_PCA10028
+CFLAGS += -DBSP_DEFINES_ONLY
 CFLAGS += -mcpu=cortex-m0
 CFLAGS += -mthumb -mabi=aapcs --std=gnu99
-CFLAGS += -Wall -Werror -Os
+CFLAGS += -Wall
 CFLAGS += -mfloat-abi=soft
 # keep every function in separate section. This will allow linker to dump unused functions
 CFLAGS += -ffunction-sections -fdata-sections -fno-strict-aliasing
