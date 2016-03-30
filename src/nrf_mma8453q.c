@@ -48,8 +48,14 @@ drv_accelHandle_t drv_accelInit(drv_accelConfig_t *conf)
     };
     handle->instance = (nrf_drv_twi_t )NRF_DRV_TWI_INSTANCE(0); //Fixme
     nrf_drv_twi_init(&handle->instance, &twiConf, NULL, NULL);
-    nrf_drv_twi_enable(&handle->instance);
+    if(conf->enable)
+        nrf_drv_twi_enable(&handle->instance);
     return handle;
+}
+
+void drv_accelEnable(drv_accelHandle_t handle)
+{
+    nrf_drv_twi_enable(handle->instance);
 }
 
 bool drv_accelSetup(drv_accelHandle_t handle, uint8_t address, uint8_t data,
@@ -66,7 +72,7 @@ bool drv_accelSetup(drv_accelHandle_t handle, uint8_t address, uint8_t data,
     return (errCode == NRF_SUCCESS);
 }
 
-drv_accelData_t drv_accelRead(drv_accelHandle_t handle) /**< Returned values */
+drv_accelData_t drv_accelRead(drv_accelHandle_t handle)
 {
     drv_accelData_t accelData;
     uint32_t errCode;
@@ -92,5 +98,10 @@ drv_accelData_t drv_accelRead(drv_accelHandle_t handle) /**< Returned values */
     accelData.z = (accelBuf[4] << 4 | (accelBuf[5] >> 4 & 0xE));
 
     return accelData;
+}
+
+void drv_accelDisable(drv_accelHandle_t handle)
+{
+    nrf_drv_twi_disable(handle->instance);
 }
 

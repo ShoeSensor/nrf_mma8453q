@@ -39,6 +39,7 @@ typedef struct {
     uint32_t sclPin;
     nrf_twi_frequency_t twiFreq;
     uint8_t id;
+    bool enable;
 } drv_accelConfig_t;
 
 typedef struct {
@@ -56,6 +57,12 @@ typedef struct {
  * @return [description]
  */
 drv_accelHandle_t drv_accelInit(drv_accelConfig_t *conf);
+
+/**
+ *
+ * @param handle
+ */
+void drv_accelEnable(drv_accelHandle_t handle);
 
 /**
  * @brief [brief description]
@@ -80,6 +87,12 @@ bool drv_accelSetup(drv_accelHandle_t handle,
  * @return [description]
  */
 drv_accelData_t drv_accelRead(drv_accelHandle_t handle);
+
+/**
+ *
+ * @param handle
+ */
+void drv_accelDisable(drv_accelHandle_t handle);
 
 #ifdef	__cplusplus
 }
