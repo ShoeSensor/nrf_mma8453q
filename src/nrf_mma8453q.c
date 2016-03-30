@@ -15,77 +15,82 @@
  */
 
 #include "nrf_mma8453q.h"
+
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <string.h>
 #include "boards.h"
 #include "app_util_platform.h"
 #include "app_uart.h"
 #include "app_error.h"
-
 #include "nrf_delay.h"
+#include "nrf_drv_twi.h"
+#include "nrf_error.h"
 
-nrf_drv_twi_t defaultConf;
+#define CONVERT_PRIORITY(id)    CONCAT_3(TWI, id, _CONFIG_IRQ_PRIORITY)
 
-//init
-nrf_drv_twi_t init_drv()
+struct drv_accelHandle {
+    nrf_drv_twi_t instance;
+    uint8_t address;
+};
+
+const static uint8_t accelRegVal = 1;
+
+drv_accelHandle_t drv_accelInit(drv_accelConfig_t *conf)
 {
-    defaultConf = (nrf_drv_twi_t) NRF_DRV_TWI_INSTANCE(0);
-    nrf_drv_twi_init(&defaultConf, NULL, NULL, NULL);
-    nrf_drv_twi_enable(&defaultConf);
-    return defaultConf;
+    drv_accelHandle_t handle = calloc(1, sizeof(nrf_drv_twi_t));
+    nrf_drv_twi_config_t twiConf = {
+        .scl = conf->sclPin,
+        .sda = conf->sdaPin,
+        .frequency = conf->twiFreq,
+        .interrupt_priority = CONVERT_PRIORITY(0) // Fixme
+    };
+    handle->instance = (nrf_drv_twi_t )NRF_DRV_TWI_INSTANCE(0); //Fixme
+    nrf_drv_twi_init(&handle->instance, &twiConf, NULL, NULL);
+    nrf_drv_twi_enable(&handle->instance);
+    return handle;
 }
 
-//Setting up resolution of accelerometer to 4g and 10bit
-void setup_accel(nrf_drv_twi_t *p_instance,  /**< TWI instance */
-        uint8_t address,                     /**< Sensor address */
-        uint8_t *p_data,                     /**< Pointer to transmit buffer */
-        uint8_t *Value,                      /**< Value of sensitivity */
-        uint32_t length,                     /**< Bytes to be sent */
-        bool xfer_pending)
+bool drv_accelSetup(drv_accelHandle_t handle, uint8_t address, uint8_t data,
+        uint8_t value)
 {
     uint32_t errCode;
-    errCode = nrf_drv_twi_tx(p_instance,
-            address,
-            p_data,
-            length,
-            xfer_pending);
-    APP_ERROR_CHECK(errCode);
-    errCode = nrf_drv_twi_tx(p_instance,
-            address,
-            Value,
-            length,
-            xfer_pending);
-    APP_ERROR_CHECK(errCode);
+    uint8_t accelBuf[] = { data, value };
+    handle->address = address;
+    errCode = nrf_drv_twi_tx(&handle->instance,
+        address,
+        accelBuf,
+        2,
+        false);
+    return (errCode == NRF_SUCCESS);
 }
 
-bool read_xyz(uint32_t *x, uint32_t *y, uint32_t *z) /**< Returned values */
+drv_accelData_t drv_accelRead(drv_accelHandle_t handle) /**< Returned values */
 {
+    drv_accelData_t accelData;
     uint32_t errCode;
-    uint8_t buf[6];
-    uint8_t address = 0x1d;
-    uint8_t reg_pointer = 0x01;
+    uint8_t accelBuf[7];
 
-    //send the register
-    errCode = nrf_drv_twi_tx(&defaultConf,   /**< TWI instance */
-            address                            /**< Sensor address */
-            ,&reg_pointer                            /**< Pointer to transmit buffer */
-            ,1,                              /**< # of bytes to send */
-            NULL
-            );
-    if(errCode != NRF_SUCCESS)
-        return false;
+    memset(accelBuf, 0, sizeof(accelBuf));
+    memset(&accelData, 0, sizeof(accelData));
+    accelBuf[0] = accelRegVal;
 
-    //store everything in the buffer
-    nrf_drv_twi_rx ( &defaultConf,            /**< TWI instance */
-            address,                             /**< Sensor address */
-            (uint8_t*)&buf,                   /**< Pointer to transmit buffer */
-            6,                                /**< # of bytes to be received */
-            NULL);
-    *x = (buf[0] << 4 | (buf[1] >> 4 & 0xE)); /**< Combining two bytes of 1 axle*/
-    *y = (buf[2] << 4 | (buf[3] >> 4 & 0xE));
-    *z = (buf[4] << 4 | (buf[5] >> 4 & 0xE));
-    if(errCode == NRF_SUCCESS)
-        return true;
+    errCode = nrf_drv_twi_rx(&handle->instance,
+            handle->address,
+            accelBuf,
+            7,
+            false);
+
+    if (errCode != NRF_SUCCESS) {
+        accelData.failed = true;
+        return accelData;
+    }
+
+    accelData.x = (accelBuf[0] << 4 | (accelBuf[1] >> 4 & 0xE));
+    accelData.y = (accelBuf[2] << 4 | (accelBuf[3] >> 4 & 0xE));
+    accelData.z = (accelBuf[4] << 4 | (accelBuf[5] >> 4 & 0xE));
+
+    return accelData;
 }
 

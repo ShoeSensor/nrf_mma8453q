@@ -25,30 +25,61 @@
 extern "C" {
 #endif
 
-//initializes the peripheral of i2c
-nrf_drv_twi_t init_drv();
+#define DRV_ACCEL_CONF_DEFAULT (drv_accelConfig_t) {    \
+        .sdaPin = TWI0_CONFIG_SDA,                      \
+        .sclPin = TWI0_CONFIG_SCL,                      \
+        .twiFreq = TWI0_CONFIG_FREQUENCY,               \
+        .id = TWI0_INSTANCE_INDEX                       \
+    }
 
-/*Setting up resolution of accelerometer :
-inputs:
-p_instance -
-address - Accelerometer's address - 0x1D
-p_data - register's address
-length - number of bytes to be sent
-xfer_pending - After a specified number of bytes, transmission will be suspended
-(if xfer_pending is set) or stopped (if not), just put false
-*/
- void setup_accel(nrf_drv_twi_t *p_instance, uint8_t address, uint8_t * p_data,
-         uint8_t * Value,
-         uint32_t length,
-         bool xfer_pending);
-/*Reading data xyz
-Inputs:
-pointer to save x,y,z values
-*/
- bool read_xyz(uint32_t *x, uint32_t *y, uint32_t *z);
+typedef struct drv_accelHandle *drv_accelHandle_t;
 
+typedef struct {
+    uint32_t sdaPin;
+    uint32_t sclPin;
+    nrf_twi_frequency_t twiFreq;
+    uint8_t id;
+} drv_accelConfig_t;
 
+typedef struct {
+    uint16_t x;
+    uint16_t y;
+    uint16_t z;
+    bool failed : 1;
+} drv_accelData_t;
 
+/**
+ * @brief [brief description]
+ * @details [long description]
+ *
+ * @param conf [description]
+ * @return [description]
+ */
+drv_accelHandle_t drv_accelInit(drv_accelConfig_t *conf);
+
+/**
+ * @brief [brief description]
+ * @details [long description]
+ *
+ * @param handle [description]
+ * @param adress [description]
+ * @param data [description]
+ * @param value [description]
+ * @return [description]
+ */
+bool drv_accelSetup(drv_accelHandle_t handle,
+        uint8_t adress,
+        uint8_t data,
+        uint8_t value);
+
+/**
+ * @brief [brief description]
+ * @details [long description]
+ *
+ * @param handle [description]
+ * @return [description]
+ */
+drv_accelData_t drv_accelRead(drv_accelHandle_t handle);
 
 #ifdef	__cplusplus
 }

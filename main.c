@@ -31,14 +31,14 @@
  */
 int main(void)
 {
-    nrf_drv_twi_t defaultConf1=  init_drv();
-    uint32_t x,y,z;
-    uint8_t data = 0xe;
-    uint8_t value = 0x1;
-    setup_accel(&defaultConf1, 0x1D, &data, &value, 1, NULL);
-    while (true)
-    {
-        read_xyz(x,y,z);
-
-    }
+//    nrf_drv_twi_t defaultConf1=  init_drv();
+//    uint32_t x,y,z;
+//    uint8_t data = 0xe;
+//    uint8_t value = 0x1;
+//    setup_accel(&defaultConf1, 0x1D, &data, &value, 1, NULL);
+//    while (true)
+//    {
+//        read_xyz(x,y,z);
+//
+//    }
 }
