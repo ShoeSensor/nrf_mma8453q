@@ -55,7 +55,7 @@ drv_accelHandle_t drv_accelInit(drv_accelConfig_t *conf)
 
 void drv_accelEnable(drv_accelHandle_t handle)
 {
-    nrf_drv_twi_enable(handle->instance);
+    nrf_drv_twi_enable(&handle->instance);
 }
 
 bool drv_accelSetup(drv_accelHandle_t handle, uint8_t address, uint8_t data,
@@ -102,6 +102,6 @@ drv_accelData_t drv_accelRead(drv_accelHandle_t handle)
 
 void drv_accelDisable(drv_accelHandle_t handle)
 {
-    nrf_drv_twi_disable(handle->instance);
+    nrf_drv_twi_disable(&handle->instance);
 }
 
