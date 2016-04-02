@@ -43,9 +43,9 @@ typedef struct {
 } drv_accelConfig_t;
 
 typedef struct {
-    uint16_t x;
-    uint16_t y;
-    uint16_t z;
+    uint8_t x;
+    uint8_t y;
+    uint8_t z;
     bool failed : 1;
 } drv_accelData_t;
 
