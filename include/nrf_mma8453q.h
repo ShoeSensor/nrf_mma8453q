@@ -103,9 +103,9 @@ typedef struct {
 } drv_accelConfig_t;
 
 typedef struct {
-    uint8_t x;
-    uint8_t y;
-    uint8_t z;
+    uint16_t x;
+    uint16_t y;
+    uint16_t z;
     bool failed : 1;
 } drv_accelData_t;
 
@@ -134,8 +134,8 @@ void drv_accelEnable(drv_accelHandle_t handle);
  * @param value [description]
  * @return [description]
  */
-bool drv_accelSetup(drv_accelHandle_t handle, uint8_t adress,
-    drv_accelConfig_t *conf);
+bool drv_accelConfigure(drv_accelHandle_t handle, uint8_t adress,
+        drv_accelConfig_t *conf);
 
 /**
  * @brief [brief description]
