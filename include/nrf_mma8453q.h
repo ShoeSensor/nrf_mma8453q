@@ -79,11 +79,12 @@ extern "C" {
 #define DATA_RATE_100           3
 #define DATA_RATE_50            4
 
-#define DRV_TWI_CONF_DEFAULT (drv_accelConfig_t) {    \
+#define DRV_TWI_CONF_DEFAULT (drv_accelConfig_t) {      \
         .sdaPin = TWI0_CONFIG_SDA,                      \
         .sclPin = TWI0_CONFIG_SCL,                      \
         .twiFreq = TWI0_CONFIG_FREQUENCY,               \
-        .id = TWI0_INSTANCE_INDEX                       \
+        .id = TWI0_INSTANCE_INDEX,                      \
+        .enable = true                                  \
     }
 
 typedef struct drv_accelHandle *drv_accelHandle_t;
@@ -100,6 +101,7 @@ typedef struct {
     uint8_t gRange;
     bool highRes;
     uint8_t samplingRate;
+    uint8_t address;
 } drv_accelConfig_t;
 
 typedef struct {
@@ -134,8 +136,7 @@ void drv_accelEnable(drv_accelHandle_t handle);
  * @param value [description]
  * @return [description]
  */
-bool drv_accelConfigure(drv_accelHandle_t handle, uint8_t adress,
-        drv_accelConfig_t *conf);
+bool drv_accelConfigure(drv_accelHandle_t handle, drv_accelConfig_t *conf);
 
 /**
  * @brief [brief description]

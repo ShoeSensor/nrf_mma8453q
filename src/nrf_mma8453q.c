@@ -82,12 +82,11 @@ void drv_accelEnable(drv_accelHandle_t handle)
     nrf_drv_twi_enable(&handle->instance);
 }
 
-bool drv_accelConfigure(drv_accelHandle_t handle, uint8_t address,
-        drv_accelConfig_t *conf)
+bool drv_accelConfigure(drv_accelHandle_t handle, drv_accelConfig_t *conf)
 {
     uint8_t response;
     uint32_t errCode;
-    handle->address = address;
+    handle->address = conf->address;
     setStandby(handle);
     // Range
     errCode = setReg(handle, (uint8_t[]){REG_XYZ_DATA_CFG, conf->gRange});

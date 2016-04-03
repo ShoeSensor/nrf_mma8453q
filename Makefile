@@ -18,7 +18,7 @@ RM := rm -rf
 
 #echo suspend
 ifeq ("$(VERBOSE)","1")
-NO_ECHO := 
+NO_ECHO :=
 else
 NO_ECHO := @
 endif
@@ -37,11 +37,13 @@ SIZE            := '$(GNU_INSTALL_ROOT)/bin/$(GNU_PREFIX)-size'
 remduplicates = $(strip $(if $1,$(firstword $1) $(call remduplicates,$(filter-out $(firstword $1),$1))))
 
 
-#Project specific files 
+#Project specific files
 INC_PATHS  += -I$(abspath $(PROJ_HOME)/config)
 INC_PATHS  += -I$(abspath $(PROJ_HOME)/include)
+INC_PATHS  += -I$(abspath $(SDK_ROOT)/apps/nrf_uart/include)
 C_SOURCE_FILES += $(abspath $(PROJ_HOME)/main.c)
 C_SOURCE_FILES += $(abspath $(PROJ_HOME)/src/nrf_mma8453q.c)
+C_SOURCE_FILES += $(abspath $(SDK_ROOT)/apps/nrf_uart/src/nrf_uartDriver.c)
 
 
 #source common to all targets
@@ -116,9 +118,7 @@ LDFLAGS += --specs=nano.specs -lc -lnosys
 # Assembler flags
 ASMFLAGS += -x assembler-with-cpp
 ASMFLAGS += -DBOARD_PCA10028
-ASMFLAGS += -DSOFTDEVICE_PRESENT
 ASMFLAGS += -DNRF51
-ASMFLAGS += -DS110
 ASMFLAGS += -DBLE_STACK_SUPPORT_REQD
 ASMFLAGS += -DSWI_DISABLE0
 #default target - first one defined
@@ -196,7 +196,7 @@ genbin:
 	$(NO_ECHO)$(OBJCOPY) -O binary $(OUTPUT_BINARY_DIRECTORY)/$(OUTPUT_FILENAME).out $(OUTPUT_BINARY_DIRECTORY)/$(OUTPUT_FILENAME).bin
 
 ## Create binary .hex file from the .out file
-genhex: 
+genhex:
 	@echo Preparing: $(OUTPUT_FILENAME).hex
 	$(NO_ECHO)$(OBJCOPY) -O ihex $(OUTPUT_BINARY_DIRECTORY)/$(OUTPUT_FILENAME).out $(OUTPUT_BINARY_DIRECTORY)/$(OUTPUT_FILENAME).hex
 
@@ -213,7 +213,7 @@ cleanobj:
 
 flash: $(MAKECMDGOALS)
 	@echo Flashing: $(OUTPUT_BINARY_DIRECTORY)/$<.hex
-	nrfjprog --program $(OUTPUT_BINARY_DIRECTORY)/$<.hex -f nrf51  --sectorerase
+	nrfjprog --program $(OUTPUT_BINARY_DIRECTORY)/$<.hex -f nrf51  --chiperase
 	nrfjprog --reset
 
 ## Flash softdevice
