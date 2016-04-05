@@ -39,23 +39,33 @@ struct drv_accelHandle {
 const static uint8_t accelRegVal = 1;
 
 
-static void setStandby(drv_accelHandle_t handle)
+static uint32_t setStandby(drv_accelHandle_t handle)
 {
+    uint32_t errCode;
     uint8_t response[2] = {REG_CTRL_REG1, 0};;
-    nrf_drv_twi_rx(&handle->instance, handle->address, &response[1], 1, true);
+    errCode = nrf_drv_twi_rx(&handle->instance, handle->address,
+            &response[1], 1, false);
+    if(errCode != NRF_SUCCESS)
+        return errCode;
     response[1] &= ~ACTIVE_MASK;
-    nrf_drv_twi_tx(&handle->instance, handle->address, response, 2, true);
+    return nrf_drv_twi_tx(&handle->instance, handle->address,
+        response, 2, true);
 }
 
-static void setActive(drv_accelHandle_t handle)
+static uint32_t setActive(drv_accelHandle_t handle)
 {
+    uint32_t errCode;
     uint8_t response[2] = {REG_CTRL_REG1, 0};
-    nrf_drv_twi_rx(&handle->instance, handle->address, &response[1], 1, true);
+    errCode = nrf_drv_twi_rx(&handle->instance, handle->address,
+            &response[1], 1, false);
+    if(errCode != NRF_SUCCESS)
+        return errCode;
     response[1] |= ACTIVE_MASK;
-    nrf_drv_twi_tx(&handle->instance, handle->address, response, 2, true);
+    return nrf_drv_twi_tx(&handle->instance, handle->address,
+            response, 2, true);
 }
 
-uint32_t setReg(drv_accelHandle_t handle, uint8_t data[2])
+static uint32_t setReg(drv_accelHandle_t handle, uint8_t data[2])
 {
     return nrf_drv_twi_tx(&handle->instance, handle->address,
         data, 2, true);
@@ -87,7 +97,9 @@ bool drv_accelConfigure(drv_accelHandle_t handle, drv_accelConfig_t *conf)
     uint8_t response;
     uint32_t errCode;
     handle->address = conf->address;
-    setStandby(handle);
+    errCode = setStandby(handle);
+    if(errCode != NRF_SUCCESS)
+        return false;
     // Range
     errCode = setReg(handle, (uint8_t[]){REG_XYZ_DATA_CFG, conf->gRange});
     if(errCode != NRF_SUCCESS)
@@ -116,8 +128,7 @@ bool drv_accelConfigure(drv_accelHandle_t handle, drv_accelConfig_t *conf)
             (response & DATA_RATE_MASK) | (conf->samplingRate << 3)});
     if(errCode != NRF_SUCCESS)
         return false;
-    setActive(handle);
-    return (NRF_SUCCESS);
+    return (setActive(handle) == NRF_SUCCESS);
 }
 
 drv_accelData_t drv_accelRead(drv_accelHandle_t handle)
@@ -129,7 +140,7 @@ drv_accelData_t drv_accelRead(drv_accelHandle_t handle)
     memset(accelBuf, 0, sizeof(accelBuf));
 
     errCode = nrf_drv_twi_tx(&handle->instance, handle->address,
-            (uint8_t[]){REG_CTRL_REG1}, 1, false);
+            (uint8_t[]){REG_OUT_X_MSB}, 1, false);
 
     if (errCode != NRF_SUCCESS)
         goto err;
@@ -166,4 +177,3 @@ void drv_accelDisable(drv_accelHandle_t handle)
 {
     nrf_drv_twi_disable(&handle->instance);
 }
-

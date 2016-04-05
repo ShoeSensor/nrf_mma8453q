@@ -45,7 +45,7 @@ int main(void)
     drv_accelConfig_t accelConf = {
         .gRange = FULL_SCALE_RANGE_4g,
         .highRes = false,
-        .address = 0x1C,
+        .address = 0x1D,
         .samplingRate = DATA_RATE_400
     };
     accelHandle = drv_accelInit(&twiConf);
