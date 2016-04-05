@@ -42,20 +42,29 @@ const static uint8_t accelRegVal = 1;
 static uint32_t setStandby(drv_accelHandle_t handle)
 {
     uint32_t errCode;
-    uint8_t response[2] = {REG_CTRL_REG1, 0};;
+    uint8_t response[2] = {REG_CTRL_REG1, 0};
+
+    errCode = nrf_drv_twi_tx(&handle->instance, handle->address,
+                response, 1, true);
+    if(errCode != NRF_SUCCESS)
+        return errCode;
     errCode = nrf_drv_twi_rx(&handle->instance, handle->address,
             &response[1], 1, false);
     if(errCode != NRF_SUCCESS)
         return errCode;
     response[1] &= ~ACTIVE_MASK;
     return nrf_drv_twi_tx(&handle->instance, handle->address,
-        response, 2, true);
+            response, 2, false);
 }
 
 static uint32_t setActive(drv_accelHandle_t handle)
 {
     uint32_t errCode;
     uint8_t response[2] = {REG_CTRL_REG1, 0};
+    errCode = nrf_drv_twi_tx(&handle->instance, handle->address,
+                response, 1, false);
+    if(errCode != NRF_SUCCESS)
+        return errCode;
     errCode = nrf_drv_twi_rx(&handle->instance, handle->address,
             &response[1], 1, false);
     if(errCode != NRF_SUCCESS)
@@ -68,7 +77,7 @@ static uint32_t setActive(drv_accelHandle_t handle)
 static uint32_t setReg(drv_accelHandle_t handle, uint8_t data[2])
 {
     return nrf_drv_twi_tx(&handle->instance, handle->address,
-        data, 2, true);
+        data, 2, false);
 }
 
 drv_accelHandle_t drv_accelInit(drv_twiConfig_t *conf)
@@ -97,6 +106,7 @@ bool drv_accelConfigure(drv_accelHandle_t handle, drv_accelConfig_t *conf)
     uint8_t response;
     uint32_t errCode;
     handle->address = conf->address;
+    handle->highRes = conf->highRes;
     errCode = setStandby(handle);
     if(errCode != NRF_SUCCESS)
         return false;
@@ -106,22 +116,22 @@ bool drv_accelConfigure(drv_accelHandle_t handle, drv_accelConfig_t *conf)
         return false;
     // Resolution
     errCode = nrf_drv_twi_tx(&handle->instance, handle->address,
-            (uint8_t[]){REG_CTRL_REG1}, 1, false);
+            (uint8_t[]){REG_CTRL_REG1}, 1, true);
     if(errCode != NRF_SUCCESS)
         return false;
     if(conf->highRes) {
         errCode = nrf_drv_twi_rx(&handle->instance,
-                handle->address, &response, 1, true);
+                handle->address, &response, 1, false);
         setReg(handle, (uint8_t[]){REG_CTRL_REG1, response &~RES_MASK});
     } else {
         errCode = nrf_drv_twi_rx(&handle->instance,
-                handle->address, &response, 1, true);
+                handle->address, &response, 1, false);
         setReg(handle, (uint8_t[]){REG_CTRL_REG1, response | RES_MASK});
     }
     if(errCode != NRF_SUCCESS)
         return false;
     errCode = nrf_drv_twi_rx(&handle->instance,
-            handle->address, &response, 1, true);\
+            handle->address, &response, 1, false);\
     if(errCode != NRF_SUCCESS)
         return false;
     errCode = setReg(handle, (uint8_t[]){REG_CTRL_REG1,
@@ -138,33 +148,30 @@ drv_accelData_t drv_accelRead(drv_accelHandle_t handle)
     uint8_t accelBuf[6];
 
     memset(accelBuf, 0, sizeof(accelBuf));
+    memset(&accelData, 0, sizeof(accelData));
 
     errCode = nrf_drv_twi_tx(&handle->instance, handle->address,
-            (uint8_t[]){REG_OUT_X_MSB}, 1, false);
+            (uint8_t[]){REG_OUT_X_MSB}, 1, true);
 
     if (errCode != NRF_SUCCESS)
         goto err;
 
     if(handle->highRes) {
         errCode = nrf_drv_twi_rx(&handle->instance, handle->address,
-                accelBuf, 6, true);
+                accelBuf, 6, false);
         accelData.x = (accelBuf[0] << 4 | (accelBuf[1] >> 4 & 0xE));
         accelData.y = (accelBuf[2] << 4 | (accelBuf[3] >> 4 & 0xE));
         accelData.z = (accelBuf[4] << 4 | (accelBuf[5] >> 4 & 0xE));
     } else {
         errCode = nrf_drv_twi_rx(&handle->instance, handle->address,
-                accelBuf, 3, true);
-        accelData.x = (accelBuf[0] << 4);
-        accelData.y = (accelBuf[1] << 4);
-        accelData.z = (accelBuf[2] << 4);
+                accelBuf, 3, false);
+        accelData.x = (accelBuf[0] << 2);
+        accelData.y = (accelBuf[1] << 2);
+        accelData.z = (accelBuf[2] << 2);
     }
 
     if (errCode != NRF_SUCCESS)
         goto err;
-
-    accelData.x = (accelData.x > 2047) ? accelData.x - 4096 : accelData.x;
-    accelData.y = (accelData.y > 2047) ? accelData.y - 4096 : accelData.y;
-    accelData.z = (accelData.z > 2047) ? accelData.z - 4096 : accelData.z;
 
     return accelData;
 
