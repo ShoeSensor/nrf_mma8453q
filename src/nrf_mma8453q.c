@@ -36,9 +36,6 @@ struct drv_accelHandle {
     bool highRes;
 };
 
-const static uint8_t accelRegVal = 1;
-
-
 static uint32_t setStandby(drv_accelHandle_t handle)
 {
     uint32_t errCode;
@@ -90,7 +87,7 @@ drv_accelHandle_t drv_accelInit(drv_twiConfig_t *conf)
         .interrupt_priority = CONVERT_PRIORITY(0) // Fixme
     };
     handle->instance = (nrf_drv_twi_t )NRF_DRV_TWI_INSTANCE(0); //Fixme
-    nrf_drv_twi_init(&handle->instance, &twiConf, NULL, NULL);
+    nrf_drv_twi_init(&handle->instance, &twiConf, conf->twiHandler, NULL);
     if(conf->enable)
         nrf_drv_twi_enable(&handle->instance);
     return handle;

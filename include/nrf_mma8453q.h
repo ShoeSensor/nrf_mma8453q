@@ -101,11 +101,12 @@ extern "C" {
 typedef struct drv_accelHandle *drv_accelHandle_t;
 
 typedef struct {
-    uint32_t sdaPin;                /**<Pin to use for the TWI data pin*/
-    uint32_t sclPin;                /**<Pin to use for the TWI clock pin*/
-    nrf_twi_frequency_t twiFreq;    /**<TWI clock frequency*/
-    uint8_t id;                     /**<TWI module ID, not being used right now*/
-    bool enable;                    /**<If the TWI hardware should be powered on on initialization or not*/
+    uint32_t sdaPin;                        /**<Pin to use for the TWI data pin*/
+    uint32_t sclPin;                        /**<Pin to use for the TWI clock pin*/
+    nrf_twi_frequency_t twiFreq;            /**<TWI clock frequency*/
+    uint8_t id;                             /**<TWI module ID, not being used right now*/
+    bool enable;                            /**<If the TWI hardware should be powered on on initialization or not*/
+    nrf_drv_twi_evt_handler_t twiHandler;   /**<Handle event from the TWI driver in non-blocking mode, leave NULL for blocking*/
 } drv_twiConfig_t;
 
 typedef struct {
