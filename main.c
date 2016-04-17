@@ -28,8 +28,20 @@
 #include "nrf_drv_config.h"
 
 static drv_accelHandle_t accelHandle;
-static drv_accelData_t accelData;
+//static drv_accelData_t accelData;
 static char uartBuf[100];
+
+static void readHandler(drv_accelData_t accelData)
+{
+    if(accelData.failed) {
+        uart_write("failed", strlen("failed"));
+    } else {
+        sprintf(uartBuf, "X: %d Y: %d Z: %d\r\n", accelData.x, accelData.y, accelData.z);
+        uart_write(uartBuf, strlen(uartBuf));
+    }
+}
+
+
 /**
  * @brief Function for application main entry.
  */
@@ -46,20 +58,13 @@ int main(void)
         .gRange = FULL_SCALE_RANGE_4g,
         .highRes = false,
         .address = 0x1D,
-        .samplingRate = DATA_RATE_400
+        .samplingRate = DATA_RATE_800,
+        .readHandler = readHandler
     };
     accelHandle = drv_accelInit(&twiConf);
     drv_accelConfigure(accelHandle, &accelConf);
     uart_init();
     while(1) {
-        accelData = drv_accelRead(accelHandle);
-        if(accelData.failed) {
-            uart_write("failed", strlen("failed"));
-        } else {
-            sprintf(uartBuf, "X: %d Y: %d Z: %d\r\n", accelData.x, accelData.y, accelData.z);
-            uart_write(uartBuf, strlen(uartBuf));
-        }
-        nrf_delay_ms(50);
-
+        drv_accelRead(accelHandle);
     }
 }

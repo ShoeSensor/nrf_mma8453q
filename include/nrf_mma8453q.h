@@ -106,15 +106,7 @@ typedef struct {
     nrf_twi_frequency_t twiFreq;            /**<TWI clock frequency*/
     uint8_t id;                             /**<TWI module ID, not being used right now*/
     bool enable;                            /**<If the TWI hardware should be powered on on initialization or not*/
-    nrf_drv_twi_evt_handler_t twiHandler;   /**<Handle event from the TWI driver in non-blocking mode, leave NULL for blocking*/
 } drv_twiConfig_t;
-
-typedef struct {
-    uint8_t gRange;                 /**<Range in G forces, either 2,4 or 8*/
-    bool highRes;                   /**<If 10-bits mode should be used rather then 8-bits*/
-    uint8_t samplingRate;           /**<The sampling rate, see DATA_RATE_x*/
-    uint8_t address;                /**<TWI Device address*/
-} drv_accelConfig_t;
 
 typedef struct {
     uint16_t x;                     /**<X value of the accelerometer*/
@@ -122,6 +114,16 @@ typedef struct {
     uint16_t z;                     /**<Z value of the accelerometer*/
     bool failed : 1;                /**<If reading failed or not */
 } drv_accelData_t;
+
+typedef void(*drv_accelReadHander_t)(drv_accelData_t data);
+
+typedef struct {
+    uint8_t gRange;                     /**<Range in G forces, either 2,4 or 8*/
+    bool highRes;                       /**<If 10-bits mode should be used rather then 8-bits*/
+    uint8_t samplingRate;               /**<The sampling rate, see DATA_RATE_x*/
+    uint8_t address;                    /**<TWI Device address*/
+    drv_accelReadHander_t readHandler;  /**<This function is called when data is ready*/
+} drv_accelConfig_t;
 
 /**
  * @brief Initialize the accelerometer.
@@ -160,7 +162,7 @@ bool drv_accelConfigure(drv_accelHandle_t handle, drv_accelConfig_t *conf);
  * @return A structure containing the data read from the accelerometer. If the
  * failed member is true, an error in the communication occurred.
  */
-drv_accelData_t drv_accelRead(drv_accelHandle_t handle);
+uint32_t drv_accelRead(drv_accelHandle_t handle);
 
 /**
  * @brief Disable the TWI hardware.

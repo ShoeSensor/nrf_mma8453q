@@ -212,8 +212,8 @@ cleanobj:
 	$(RM) $(BUILD_DIRECTORIES)/*.o
 
 flash: $(MAKECMDGOALS)
-	@echo Flashing: $(OUTPUT_BINARY_DIRECTORY)/$<.hex
-	nrfjprog --program $(OUTPUT_BINARY_DIRECTORY)/$<.hex -f nrf51  --chiperase
+	@echo Flashing: $(OUTPUT_BINARY_DIRECTORY)/nrf51422_xxac_s110.hex
+	nrfjprog --program $(OUTPUT_BINARY_DIRECTORY)/nrf51422_xxac_s110.hex -f nrf51  --chiperase
 	nrfjprog --reset
 
 ## Flash softdevice
