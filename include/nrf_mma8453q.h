@@ -14,6 +14,17 @@
  * limitations under the License.
  */
 
+/**
+ * @defgroup dd Driver Drivers
+ * @file
+ * @defgroup dd_accel Accelerometer Device Drivers
+ * @{
+ * @ingroup dd
+ *
+ * @brief Accelerometer device driver for the mma8453q.
+ *
+ */
+
 #ifndef NRF_MMA8453Q_H
 #define	NRF_MMA8453Q_H
 
@@ -90,66 +101,72 @@ extern "C" {
 typedef struct drv_accelHandle *drv_accelHandle_t;
 
 typedef struct {
-    uint32_t sdaPin;
-    uint32_t sclPin;
-    nrf_twi_frequency_t twiFreq;
-    uint8_t id;
-    bool enable;
+    uint32_t sdaPin;                /**<Pin to use for the TWI data pin*/
+    uint32_t sclPin;                /**<Pin to use for the TWI clock pin*/
+    nrf_twi_frequency_t twiFreq;    /**<TWI clock frequency*/
+    uint8_t id;                     /**<TWI module ID, not being used right now*/
+    bool enable;                    /**<If the TWI hardware should be powered on on initialization or not*/
 } drv_twiConfig_t;
 
 typedef struct {
-    uint8_t gRange;
-    bool highRes;
-    uint8_t samplingRate;
-    uint8_t address;
+    uint8_t gRange;                 /**<Range in G forces, either 2,4 or 8*/
+    bool highRes;                   /**<If 10-bits mode should be used rather then 8-bits*/
+    uint8_t samplingRate;           /**<The sampling rate, see DATA_RATE_x*/
+    uint8_t address;                /**<TWI Device address*/
 } drv_accelConfig_t;
 
 typedef struct {
-    uint16_t x;
-    uint16_t y;
-    uint16_t z;
-    bool failed : 1;
+    uint16_t x;                     /**<X value of the accelerometer*/
+    uint16_t y;                     /**<Y value of the accelerometer*/
+    uint16_t z;                     /**<Z value of the accelerometer*/
+    bool failed : 1;                /**<If reading failed or not */
 } drv_accelData_t;
 
 /**
- * @brief [brief description]
- * @details [long description]
+ * @brief Initialize the accelerometer.
+ * @details This initializes the TWI hardware.
  *
- * @param conf [description]
- * @return [description]
+ * @param conf Configuration for TWI.
+ * @return A handle to the accelerometer and TWI driver.
  */
 drv_accelHandle_t drv_accelInit(drv_twiConfig_t *conf);
 
 /**
- *
- * @param handle
+ * @brief Enable the TWI hardware
+ * @details This disables the power of the TWI hardware. This can be useful
+ * to save power.
+ * @param handle Handle to the accelerometer driver to turn off.
  */
 void drv_accelEnable(drv_accelHandle_t handle);
 
 /**
- * @brief [brief description]
- * @details [long description]
+ * @brief Set the accelerometer configuration.
+ * @details This function can configure the accelerometer itself. For available
+ * options, see drv_accelConfig_t.
  *
- * @param handle [description]
- * @param adress [description]
- * @param data [description]
- * @param value [description]
- * @return [description]
+ * @param handle Accelerometer handle to configure.
+ * @param conf Configuration to apply.
+ *
+ * @retval  true If the configuration was successful.
+ * @retval  false If a TWI error occurred.
  */
 bool drv_accelConfigure(drv_accelHandle_t handle, drv_accelConfig_t *conf);
 
 /**
- * @brief [brief description]
- * @details [long description]
+ * @brief Read the x, y and z value from the accelerometer.
  *
- * @param handle [description]
- * @return [description]
+ * @param handle [Handle to the accelerometer to read.
+ * @return A structure containing the data read from the accelerometer. If the
+ * failed member is true, an error in the communication occurred.
  */
 drv_accelData_t drv_accelRead(drv_accelHandle_t handle);
 
 /**
+ * @brief Disable the TWI hardware.
+ * @details [This turns off the power from the TWI hardware. This can be useful
+ * to save power.
  *
- * @param handle
+ * @param handle Handle to the accelerometer to turn off.
  */
 void drv_accelDisable(drv_accelHandle_t handle);
 
@@ -158,3 +175,7 @@ void drv_accelDisable(drv_accelHandle_t handle);
 #endif
 
 #endif	/* NRF_MMA8453Q_H */
+
+/**
+ *@}
+ **/
