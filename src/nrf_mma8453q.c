@@ -30,7 +30,7 @@
 
 #define CONVERT_PRIORITY(id)    CONCAT_3(TWI, id, _CONFIG_IRQ_PRIORITY)
 
-static uint8_t accelBuf[8];
+static uint8_t accelBuf[6];
 
 struct drv_accelHandle {
     nrf_drv_twi_t instance;
@@ -51,10 +51,11 @@ static void twiEventHandler(const nrf_drv_twi_evt_t *event, void *context)
                 accelData.y = (event->p_data[2] << 4 | (event->p_data[3] >> 4 & 3));
                 accelData.z = (event->p_data[4] << 4 | (event->p_data[5] >> 4 & 3));
             } else {
-                accelData.x = UINT16_MAX & (event->p_data[0] << 2);
-                accelData.y = UINT16_MAX & (event->p_data[1] << 2);
-                accelData.z = UINT16_MAX & (event->p_data[2] << 2);
-                handle->readHandler(accelData);
+                accelData.x = event->p_data[0];
+                accelData.y = event->p_data[1];
+                accelData.z = event->p_data[2];
+                if(handle->readHandler)
+                    handle->readHandler(accelData);
             }
             break;
         case NRF_DRV_TWI_TX_DONE:
@@ -148,13 +149,14 @@ void drv_accelEnable(drv_accelHandle_t handle)
     nrf_drv_twi_enable(&handle->instance);
 }
 
-bool drv_accelConfigure(drv_accelHandle_t handle, drv_accelConfig_t *conf)
+bool drv_accelConfigure(drv_accelHandle_t handle, drv_accelConfig_t *conf,
+        drv_accelReadHander_t readHandler)
 {
     uint8_t response;
     uint32_t errCode;
     handle->address = conf->address;
     handle->highRes = conf->highRes;
-    handle->readHandler = conf->readHandler;
+    handle->readHandler = readHandler;
     errCode = setStandby(handle);
     if(errCode != NRF_SUCCESS)
         return false;
@@ -194,15 +196,8 @@ bool drv_accelConfigure(drv_accelHandle_t handle, drv_accelConfig_t *conf)
 
 uint32_t drv_accelRead(drv_accelHandle_t handle)
 {
-    uint32_t errCode;
-
-    errCode = nrf_drv_twi_tx(&handle->instance, handle->address,
+    return nrf_drv_twi_tx(&handle->instance, handle->address,
             (uint8_t[]){REG_OUT_X_MSB}, 1, true);
-
-    if (errCode != NRF_SUCCESS)
-        return errCode;
-
-    return 0;
 }
 
 void drv_accelDisable(drv_accelHandle_t handle)

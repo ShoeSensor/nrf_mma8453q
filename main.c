@@ -33,12 +33,8 @@ static char uartBuf[100];
 
 static void readHandler(drv_accelData_t accelData)
 {
-    if(accelData.failed) {
-        uart_write("failed", strlen("failed"));
-    } else {
-        sprintf(uartBuf, "X: %d Y: %d Z: %d\r\n", accelData.x, accelData.y, accelData.z);
-        uart_write(uartBuf, strlen(uartBuf));
-    }
+    sprintf(uartBuf, "X: %d Y: %d Z: %d\r\n", accelData.x, accelData.y, accelData.z);
+    uart_write(uartBuf, strlen(uartBuf));
 }
 
 

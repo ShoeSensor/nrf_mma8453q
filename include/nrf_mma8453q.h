@@ -122,7 +122,6 @@ typedef struct {
     bool highRes;                       /**<If 10-bits mode should be used rather then 8-bits*/
     uint8_t samplingRate;               /**<The sampling rate, see DATA_RATE_x*/
     uint8_t address;                    /**<TWI Device address*/
-    drv_accelReadHander_t readHandler;  /**<This function is called when data is ready*/
 } drv_accelConfig_t;
 
 /**
@@ -153,7 +152,8 @@ void drv_accelEnable(drv_accelHandle_t handle);
  * @retval  true If the configuration was successful.
  * @retval  false If a TWI error occurred.
  */
-bool drv_accelConfigure(drv_accelHandle_t handle, drv_accelConfig_t *conf);
+bool drv_accelConfigure(drv_accelHandle_t handle, drv_accelConfig_t *conf,
+        drv_accelReadHander_t readHandler);
 
 /**
  * @brief Read the x, y and z value from the accelerometer.
