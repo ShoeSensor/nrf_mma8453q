@@ -28,16 +28,21 @@
 #include "nrf_drv_twi.h"
 #include "nrf_error.h"
 
-#define CONVERT_PRIORITY(id)    CONCAT_3(TWI, id, _CONFIG_IRQ_PRIORITY)
+#define DRV_TWI_CONF_DEFAULT (nrf_drv_twi_config_t) {   \
+        .sda = TWI0_CONFIG_SDA,                         \
+        .scl = TWI0_CONFIG_SCL,                         \
+        .frequency = TWI0_CONFIG_FREQUENCY,             \
+        .interrupt_priority = TWI0_CONFIG_IRQ_PRIORITY}
 
 static uint8_t accelBuf[6];
+static bool isTwiInit = false;
 
 struct drv_accelHandle {
     nrf_drv_twi_t instance;
     uint8_t address;
     bool highRes;
-    drv_twiConfig_t *conf;
     drv_accelReadHander_t readHandler;
+    bool isStopped;
 };
 
 static void twiEventHandler(const nrf_drv_twi_evt_t *event, void *context)
@@ -57,9 +62,11 @@ static void twiEventHandler(const nrf_drv_twi_evt_t *event, void *context)
                 if(handle->readHandler)
                     handle->readHandler(accelData);
             }
+            if(!handle->isStopped)
+                nrf_drv_twi_tx(&handle->instance, handle->address,
+                    (uint8_t[]){REG_OUT_X_MSB}, 1, true);
             break;
         case NRF_DRV_TWI_TX_DONE:
-            memset(accelBuf, 0, sizeof(accelBuf));
             if(handle->highRes) {
                 nrf_drv_twi_rx(&handle->instance, handle->address,
                         accelBuf, 6, false);
@@ -114,49 +121,24 @@ static uint32_t setReg(drv_accelHandle_t handle, uint8_t data[2])
         data, 2, false);
 }
 
-static void accelReInit(drv_accelHandle_t handle)
-{
-    nrf_drv_twi_uninit(&handle->instance);
-    nrf_drv_twi_config_t twiConf = {
-        .scl = handle->conf->sclPin,
-        .sda = handle->conf->sdaPin,
-        .frequency = handle->conf->twiFreq,
-        .interrupt_priority = CONVERT_PRIORITY(0) // Fixme
-    };
-    nrf_drv_twi_init(&handle->instance, &twiConf, twiEventHandler, handle);
-    nrf_drv_twi_enable(&handle->instance);
-}
-
-drv_accelHandle_t drv_accelInit(drv_twiConfig_t *conf)
-{
-    drv_accelHandle_t handle = calloc(1, sizeof(nrf_drv_twi_t));
-    handle->conf = conf;
-    nrf_drv_twi_config_t twiConf = {
-        .scl = conf->sclPin,
-        .sda = conf->sdaPin,
-        .frequency = conf->twiFreq,
-        .interrupt_priority = CONVERT_PRIORITY(0) // Fixme
-    };
-    handle->instance = (nrf_drv_twi_t )NRF_DRV_TWI_INSTANCE(0); //Fixme
-    nrf_drv_twi_init(&handle->instance, &twiConf, NULL, NULL);
-    if(conf->enable)
-        nrf_drv_twi_enable(&handle->instance);
-    return handle;
-}
-
-void drv_accelEnable(drv_accelHandle_t handle)
-{
-    nrf_drv_twi_enable(&handle->instance);
-}
-
-bool drv_accelConfigure(drv_accelHandle_t handle, drv_accelConfig_t *conf,
+drv_accelHandle_t drv_accelNew(drv_accelConfig_t *conf,
         drv_accelReadHander_t readHandler)
 {
     uint8_t response;
     uint32_t errCode;
-    handle->address = conf->address;
-    handle->highRes = conf->highRes;
-    handle->readHandler = readHandler;
+    drv_accelHandle_t handle = calloc(1, sizeof(struct drv_accelHandle));
+    handle = &(struct drv_accelHandle) {
+            .address = conf->address,
+            .highRes = conf->highRes,
+            .readHandler = readHandler,
+            .instance = (nrf_drv_twi_t )NRF_DRV_TWI_INSTANCE(0)
+    };
+    nrf_drv_twi_config_t twiConf = DRV_TWI_CONF_DEFAULT;
+    if(!isTwiInit) {
+        nrf_drv_twi_init(&handle->instance, &twiConf, NULL, NULL);
+        nrf_drv_twi_enable(&handle->instance);
+    }
+
     errCode = setStandby(handle);
     if(errCode != NRF_SUCCESS)
         return false;
@@ -190,17 +172,33 @@ bool drv_accelConfigure(drv_accelHandle_t handle, drv_accelConfig_t *conf,
         return false;
 
     setActive(handle);
-    accelReInit(handle); // Set non blocking mode
+    nrf_drv_twi_uninit(&handle->instance);
+    nrf_drv_twi_init(&handle->instance, &twiConf, twiEventHandler, handle);
+    nrf_drv_twi_enable(&handle->instance);
+    isTwiInit = true;
     return (NRF_SUCCESS);
 }
 
-uint32_t drv_accelRead(drv_accelHandle_t handle)
+void drv_accelEnable(drv_accelHandle_t handle)
+{
+    nrf_drv_twi_enable(&handle->instance);
+    setActive(handle);
+}
+
+
+uint32_t drv_accelStartRead(drv_accelHandle_t handle)
 {
     return nrf_drv_twi_tx(&handle->instance, handle->address,
             (uint8_t[]){REG_OUT_X_MSB}, 1, true);
 }
 
+void drv_accelStopRead(drv_accelHandle_t handle)
+{
+    handle->isStopped = true; //FIXME Mutual exclusion needed?
+}
+
 void drv_accelDisable(drv_accelHandle_t handle)
 {
+    setStandby(handle);
     nrf_drv_twi_disable(&handle->instance);
 }
