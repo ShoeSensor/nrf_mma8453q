@@ -127,12 +127,10 @@ drv_accelHandle_t drv_accelNew(drv_accelConfig_t *conf,
     uint8_t response;
     uint32_t errCode;
     drv_accelHandle_t handle = calloc(1, sizeof(struct drv_accelHandle));
-    handle = &(struct drv_accelHandle) {
-            .address = conf->address,
-            .highRes = conf->highRes,
-            .readHandler = readHandler,
-            .instance = (nrf_drv_twi_t )NRF_DRV_TWI_INSTANCE(0)
-    };
+    handle->address = conf->address;
+    handle->highRes = conf->highRes;
+    handle->readHandler = readHandler;
+    handle->instance = (nrf_drv_twi_t )NRF_DRV_TWI_INSTANCE(0);
     nrf_drv_twi_config_t twiConf = DRV_TWI_CONF_DEFAULT;
     if(!isTwiInit) {
         nrf_drv_twi_init(&handle->instance, &twiConf, NULL, NULL);
@@ -176,7 +174,7 @@ drv_accelHandle_t drv_accelNew(drv_accelConfig_t *conf,
     nrf_drv_twi_init(&handle->instance, &twiConf, twiEventHandler, handle);
     nrf_drv_twi_enable(&handle->instance);
     isTwiInit = true;
-    return (NRF_SUCCESS);
+    return handle;
 }
 
 void drv_accelEnable(drv_accelHandle_t handle)
