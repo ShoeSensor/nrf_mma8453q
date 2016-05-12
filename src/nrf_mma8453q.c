@@ -44,32 +44,34 @@ static void twiEventHandler(const nrf_drv_twi_evt_t *event, void *context)
 {
     drv_accelHandle_t handle = (drv_accelHandle_t)context;
     drv_accelData_t accelData;
-    switch(event->type) {
-        case NRF_DRV_TWI_RX_DONE:
-            if(handle->highRes) {
-                accelData.x = (event->p_data[0] << 4 | (event->p_data[1] >> 4 & 3));
-                accelData.y = (event->p_data[2] << 4 | (event->p_data[3] >> 4 & 3));
-                accelData.z = (event->p_data[4] << 4 | (event->p_data[5] >> 4 & 3));
-            } else {
-                accelData.x = event->p_data[0];
-                accelData.y = event->p_data[1];
-                accelData.z = event->p_data[2];
-                if(handle->readHandler)
-                    handle->readHandler(accelData);
-            }
-            break;
-        case NRF_DRV_TWI_TX_DONE:
-            memset(accelBuf, 0, sizeof(accelBuf));
-            if(handle->highRes) {
-                nrf_drv_twi_rx(&handle->instance, handle->address,
-                        accelBuf, 6, false);
-            } else {
-                nrf_drv_twi_rx(&handle->instance, handle->address,
-                        accelBuf, 3, false);
-            }
-            break;
-        default:
-            break;
+    if(event->type == NRF_DRV_TWI_EVT_DONE) {
+    	switch(event->xfer_desc.type) {
+			case NRF_DRV_TWI_XFER_RX:
+				if(handle->highRes) {
+					accelData.x = (event->xfer_desc.p_primary_buf[0] << 4 | (event->xfer_desc.p_primary_buf[1] >> 4 & 3));
+					accelData.y = (event->xfer_desc.p_primary_buf[2] << 4 | (event->xfer_desc.p_primary_buf[3] >> 4 & 3));
+					accelData.z = (event->xfer_desc.p_primary_buf[4] << 4 | (event->xfer_desc.p_primary_buf[5] >> 4 & 3));
+				} else {
+					accelData.x = event->xfer_desc.p_primary_buf[0];
+					accelData.y = event->xfer_desc.p_primary_buf[1];
+					accelData.z = event->xfer_desc.p_primary_buf[2];
+					if(handle->readHandler)
+						handle->readHandler(accelData);
+				}
+				break;
+			case NRF_DRV_TWI_XFER_TX:
+				memset(accelBuf, 0, sizeof(accelBuf));
+				if(handle->highRes) {
+					nrf_drv_twi_rx(&handle->instance, handle->address,
+							accelBuf, 6);
+				} else {
+					nrf_drv_twi_rx(&handle->instance, handle->address,
+							accelBuf, 3);
+				}
+				break;
+			default:
+				break;
+    	}
     }
 }
 
@@ -83,7 +85,7 @@ static uint32_t setStandby(drv_accelHandle_t handle)
     if(errCode != NRF_SUCCESS)
         return errCode;
     errCode = nrf_drv_twi_rx(&handle->instance, handle->address,
-            &response[1], 1, false);
+            &response[1], 1);
     if(errCode != NRF_SUCCESS)
         return errCode;
     response[1] &= ~ACTIVE_MASK;
@@ -100,7 +102,7 @@ static uint32_t setActive(drv_accelHandle_t handle)
     if(errCode != NRF_SUCCESS)
         return errCode;
     errCode = nrf_drv_twi_rx(&handle->instance, handle->address,
-            &response[1], 1, false);
+            &response[1], 1);
     if(errCode != NRF_SUCCESS)
         return errCode;
     response[1] |= ACTIVE_MASK;
@@ -171,17 +173,17 @@ bool drv_accelConfigure(drv_accelHandle_t handle, drv_accelConfig_t *conf,
         return false;
     if(conf->highRes) {
         errCode = nrf_drv_twi_rx(&handle->instance,
-                handle->address, &response, 1, false);
+                handle->address, &response, 1);
         setReg(handle, (uint8_t[]){REG_CTRL_REG1, response &~RES_MASK});
     } else {
         errCode = nrf_drv_twi_rx(&handle->instance,
-                handle->address, &response, 1, false);
+                handle->address, &response, 1);
         setReg(handle, (uint8_t[]){REG_CTRL_REG1, response | RES_MASK});
     }
     if(errCode != NRF_SUCCESS)
         return false;
     errCode = nrf_drv_twi_rx(&handle->instance,
-            handle->address, &response, 1, false);\
+            handle->address, &response, 1);
     if(errCode != NRF_SUCCESS)
         return false;
     errCode = setReg(handle, (uint8_t[]){REG_CTRL_REG1,
