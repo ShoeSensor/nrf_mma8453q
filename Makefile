@@ -74,10 +74,11 @@ INC_PATHS += -I$(abspath $(SDK_ROOT)/components/drivers_nrf/delay)
 INC_PATHS += -I$(abspath $(SDK_ROOT)/components/libraries/util)
 INC_PATHS += -I$(abspath $(SDK_ROOT)/components/drivers_nrf/uart)
 INC_PATHS += -I$(abspath $(SDK_ROOT)/components/drivers_nrf/common)
-INC_PATHS += -I$(abspath $(SDK_ROOT)/components/toolchain)
 INC_PATHS += -I$(abspath $(SDK_ROOT)/components/drivers_nrf/config)
 INC_PATHS += -I$(abspath $(SDK_ROOT)/components/drivers_nrf/twi_master)
 INC_PATHS += -I$(abspath $(SDK_ROOT)/components/libraries/fifo)
+INC_PATHS += -I$(abspath $(SDK_ROOT)/components/toolchain)
+INC_PATHS += -I$(abspath $(SDK_ROOT)/components/toolchain/CMSIS/Include)
 INC_PATHS += -I$(abspath $(SDK_ROOT)/components/toolchain/gcc)
 
 OBJECT_DIRECTORY = _build
@@ -122,18 +123,18 @@ ASMFLAGS += -DNRF51
 ASMFLAGS += -DBLE_STACK_SUPPORT_REQD
 ASMFLAGS += -DSWI_DISABLE0
 #default target - first one defined
-default: clean nrf51422_xxac_s110
+default: clean nrf51422_xxac
 
 #building all targets
 
 all: clean
 	$(NO_ECHO)$(MAKE) -f $(MAKEFILE_NAME) -C $(MAKEFILE_DIR) -e cleanobj
-	$(NO_ECHO)$(MAKE) -f $(MAKEFILE_NAME) -C $(MAKEFILE_DIR) -e nrf51422_xxac_s110
+	$(NO_ECHO)$(MAKE) -f $(MAKEFILE_NAME) -C $(MAKEFILE_DIR) -e nrf51422_xxac
 
 #target for printing all targets
 help:
 	@echo following targets are available:
-	@echo 	nrf51422_xxac_s110
+	@echo 	nrf51422_xxac
 	@echo 	flash_softdevice
 
 
@@ -150,9 +151,9 @@ vpath %.s $(ASM_PATHS)
 
 OBJECTS = $(C_OBJECTS) $(ASM_OBJECTS)
 
-nrf51422_xxac_s110: OUTPUT_FILENAME := nrf51422_xxac_s110
-nrf51422_xxac_s110: LINKER_SCRIPT=config/$(PROJECT_NAME)_gcc_nrf51.ld
-nrf51422_xxac_s110: $(BUILD_DIRECTORIES) $(OBJECTS)
+nrf51422_xxac: OUTPUT_FILENAME := nrf51422_xxac
+nrf51422_xxac: LINKER_SCRIPT=config/$(PROJECT_NAME)_gcc_nrf51.ld
+nrf51422_xxac: $(BUILD_DIRECTORIES) $(OBJECTS)
 	@echo Linking target: $(OUTPUT_FILENAME).out
 	$(NO_ECHO)$(CC) $(LDFLAGS) $(OBJECTS) $(LIBS) -o $(OUTPUT_BINARY_DIRECTORY)/$(OUTPUT_FILENAME).out
 	$(NO_ECHO)$(MAKE) -f $(MAKEFILE_NAME) -C $(MAKEFILE_DIR) -e finalize
@@ -212,12 +213,7 @@ cleanobj:
 	$(RM) $(BUILD_DIRECTORIES)/*.o
 
 flash: $(MAKECMDGOALS)
-	@echo Flashing: $(OUTPUT_BINARY_DIRECTORY)/nrf51422_xxac_s110.hex
-	nrfjprog --program $(OUTPUT_BINARY_DIRECTORY)/nrf51422_xxac_s110.hex -f nrf51  --chiperase
+	@echo Flashing: $(OUTPUT_BINARY_DIRECTORY)/nrf51422_xxac.hex
+	nrfjprog --program $(OUTPUT_BINARY_DIRECTORY)/nrf51422_xxac.hex -f nrf51  --chiperase
 	nrfjprog --reset
 
-## Flash softdevice
-flash_softdevice:
-	@echo Flashing: s110_nrf51_8.0.0_softdevice.hex
-	nrfjprog --program $(SDK_ROOT)/components/softdevice/s110/hex/s110_nrf51_8.0.0_softdevice.hex -f nrf51 --chiperase
-	nrfjprog --reset

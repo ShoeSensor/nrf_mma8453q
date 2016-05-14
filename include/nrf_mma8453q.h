@@ -90,23 +90,7 @@ extern "C" {
 #define DATA_RATE_100           3
 #define DATA_RATE_50            4
 
-#define DRV_TWI_CONF_DEFAULT (drv_accelConfig_t) {      \
-        .sdaPin = TWI0_CONFIG_SDA,                      \
-        .sclPin = TWI0_CONFIG_SCL,                      \
-        .twiFreq = TWI0_CONFIG_FREQUENCY,               \
-        .id = TWI0_INSTANCE_INDEX,                      \
-        .enable = true                                  \
-    }
-
 typedef struct drv_accelHandle *drv_accelHandle_t;
-
-typedef struct {
-    uint32_t sdaPin;                        /**<Pin to use for the TWI data pin*/
-    uint32_t sclPin;                        /**<Pin to use for the TWI clock pin*/
-    nrf_twi_frequency_t twiFreq;            /**<TWI clock frequency*/
-    uint8_t id;                             /**<TWI module ID, not being used right now*/
-    bool enable;                            /**<If the TWI hardware should be powered on on initialization or not*/
-} drv_twiConfig_t;
 
 typedef struct {
     uint16_t x;                     /**<X value of the accelerometer*/
@@ -122,16 +106,8 @@ typedef struct {
     bool highRes;                       /**<If 10-bits mode should be used rather then 8-bits*/
     uint8_t samplingRate;               /**<The sampling rate, see DATA_RATE_x*/
     uint8_t address;                    /**<TWI Device address*/
+    uint8_t id;                         /**<TWI module ID*/
 } drv_accelConfig_t;
-
-/**
- * @brief Initialize the accelerometer.
- * @details This initializes the TWI hardware.
- *
- * @param conf Configuration for TWI.
- * @return A handle to the accelerometer and TWI driver.
- */
-drv_accelHandle_t drv_accelInit(drv_twiConfig_t *conf);
 
 /**
  * @brief Enable the TWI hardware
@@ -142,17 +118,15 @@ drv_accelHandle_t drv_accelInit(drv_twiConfig_t *conf);
 void drv_accelEnable(drv_accelHandle_t handle);
 
 /**
- * @brief Set the accelerometer configuration.
- * @details This function can configure the accelerometer itself. For available
- * options, see drv_accelConfig_t.
+ * @brief Initialize the accelerometer and set the accelerometer configuration.
+ * @details This initializes the TWI hardware and This function can configure the
+ * accelerometer itself. For available options, see drv_accelConfig_t.
  *
- * @param handle Accelerometer handle to configure.
  * @param conf Configuration to apply.
  *
- * @retval  true If the configuration was successful.
- * @retval  false If a TWI error occurred.
+ * @return A handle to the accelerometer and TWI driver. NULL if failed.
  */
-bool drv_accelConfigure(drv_accelHandle_t handle, drv_accelConfig_t *conf,
+drv_accelHandle_t drv_accelNew(drv_accelConfig_t *conf,
         drv_accelReadHander_t readHandler);
 
 /**
@@ -172,6 +146,12 @@ uint32_t drv_accelRead(drv_accelHandle_t handle);
  * @param handle Handle to the accelerometer to turn off.
  */
 void drv_accelDisable(drv_accelHandle_t handle);
+
+/**
+ * @brief Uninitialize the accelerometer driver and free up memory.
+ * @param handle
+ */
+void drv_accelDelete(drv_accelHandle_t handle);
 
 #ifdef	__cplusplus
 }

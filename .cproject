@@ -109,6 +109,7 @@
 									<listOptionValue builtIn="false" value="&quot;${SDK_ROOT}/components/drivers_nrf/twi_master&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${SDK_ROOT}/components/libraries/fifo&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${SDK_ROOT}/components/toolchain/gcc&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${SDK_ROOT}/apps/nrf_uart/include&quot;"/>
 								</option>
 								<inputType id="ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler.input.1791404928" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler.input"/>
 							</tool>
