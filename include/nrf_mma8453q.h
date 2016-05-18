@@ -89,6 +89,7 @@ extern "C" {
 #define DATA_RATE_200           2
 #define DATA_RATE_100           3
 #define DATA_RATE_50            4
+#define INT_EN_DRDY             1
 
 typedef struct drv_accelHandle *drv_accelHandle_t;
 
@@ -105,6 +106,7 @@ typedef struct {
     uint8_t gRange;                     /**<Range in G forces, either 2,4 or 8*/
     bool highRes;                       /**<If 10-bits mode should be used rather then 8-bits*/
     uint8_t samplingRate;               /**<The sampling rate, see DATA_RATE_x*/
+    uint8_t intEnable;                  /**<Enable data ready interrupts, useful with GPIOTE*/
     uint8_t address;                    /**<TWI Device address*/
     uint8_t id;                         /**<TWI module ID*/
 } drv_accelConfig_t;
