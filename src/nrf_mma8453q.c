@@ -24,7 +24,6 @@
 #include "app_util_platform.h"
 #include "app_uart.h"
 #include "app_error.h"
-#include "nrf51.h"
 #include "nrf_delay.h"
 #include "nrf_drv_config.h"
 #include "nrf_drv_twi.h"

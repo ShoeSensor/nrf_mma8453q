@@ -48,7 +48,7 @@ C_SOURCE_FILES += $(abspath $(SDK_ROOT)/apps/nrf_uart/src/nrf_uartDriver.c)
 
 #source common to all targets
 C_SOURCE_FILES += \
-$(abspath $(SDK_ROOT)/components/toolchain/system_nrf51.c) \
+$(abspath $(SDK_ROOT)/components/toolchain/system_nrf52.c) \
 $(abspath $(SDK_ROOT)/components/libraries/util/app_error.c) \
 $(abspath $(SDK_ROOT)/components/libraries/fifo/app_fifo.c) \
 $(abspath $(SDK_ROOT)/components/libraries/util/app_util_platform.c) \
@@ -61,7 +61,7 @@ $(abspath $(SDK_ROOT)/components/drivers_nrf/twi_master/nrf_drv_twi.c) \
 $(abspath $(SDK_ROOT)/components/drivers_nrf/uart/nrf_drv_uart.c) \
 
 #assembly files common to all targets
-ASM_SOURCE_FILES  = $(abspath $(SDK_ROOT)/components/toolchain/gcc/gcc_startup_nrf51.s)
+ASM_SOURCE_FILES  = $(abspath $(SDK_ROOT)/components/toolchain/gcc/gcc_startup_nrf52.s)
 
 #includes common to all targets
 INC_PATHS += -I$(abspath $(SDK_ROOT)/examples/bsp)
@@ -95,22 +95,37 @@ else
 endif
 
 #flags common to all targets
-CFLAGS += -DBOARD_PCA10028
-CFLAGS += -DNRF51
-CFLAGS += -DBOARD_PCA10028
+CFLAGS  = -DNRF52_PAN_12
+CFLAGS += -DNRF52_PAN_15
+CFLAGS += -DNRF52_PAN_58
+CFLAGS += -DFREERTOS
+CFLAGS += -DNRF52_PAN_20
+CFLAGS += -DNRF52_PAN_54
+CFLAGS += -DNRF52_PAN_31
+CFLAGS += -DNRF52_PAN_30
+CFLAGS += -DNRF52_PAN_51
+CFLAGS += -DNRF52_PAN_36
+CFLAGS += -DNRF52_PAN_53
+CFLAGS += -DCONFIG_GPIO_AS_PINRESET
+CFLAGS += -DNRF52_PAN_64
+CFLAGS += -DNRF52_PAN_55
+CFLAGS += -DNRF52_PAN_62
+CFLAGS += -DNRF52_PAN_63
+CFLAGS += -DBOARD_PCA10040
+CFLAGS += -DNRF52
 CFLAGS += -DBSP_DEFINES_ONLY
-CFLAGS += -mcpu=cortex-m0
+CFLAGS += -mcpu=cortex-m4
 CFLAGS += -mthumb -mabi=aapcs --std=gnu99
-CFLAGS += -Wall
-CFLAGS += -mfloat-abi=soft
+CFLAGS += -Wall -Werror -O3 -g3
+CFLAGS += -mfloat-abi=hard -mfpu=fpv4-sp-d16
 # keep every function in separate section. This will allow linker to dump unused functions
 CFLAGS += -ffunction-sections -fdata-sections -fno-strict-aliasing
 CFLAGS += -fno-builtin --short-enums
-
 # keep every function in separate section. This will allow linker to dump unused functions
 LDFLAGS += -Xlinker -Map=$(LISTING_DIRECTORY)/$(OUTPUT_FILENAME).map
 LDFLAGS += -mthumb -mabi=aapcs -L $(TEMPLATE_PATH) -T$(LINKER_SCRIPT)
-LDFLAGS += -mcpu=cortex-m0
+LDFLAGS += -mcpu=cortex-m4
+LDFLAGS += -mfloat-abi=hard -mfpu=fpv4-sp-d16
 # let linker to dump unused sections
 LDFLAGS += -Wl,--gc-sections
 # use newlib in nano version
@@ -118,23 +133,38 @@ LDFLAGS += --specs=nano.specs -lc -lnosys
 
 # Assembler flags
 ASMFLAGS += -x assembler-with-cpp
-ASMFLAGS += -DBOARD_PCA10028
-ASMFLAGS += -DNRF51
-ASMFLAGS += -DBLE_STACK_SUPPORT_REQD
-ASMFLAGS += -DSWI_DISABLE0
+ASMFLAGS += -DNRF52_PAN_12
+ASMFLAGS += -DNRF52_PAN_15
+ASMFLAGS += -DNRF52_PAN_58
+ASMFLAGS += -DFREERTOS
+ASMFLAGS += -DNRF52_PAN_20
+ASMFLAGS += -DNRF52_PAN_54
+ASMFLAGS += -DNRF52_PAN_31
+ASMFLAGS += -DNRF52_PAN_30
+ASMFLAGS += -DNRF52_PAN_51
+ASMFLAGS += -DNRF52_PAN_36
+ASMFLAGS += -DNRF52_PAN_53
+ASMFLAGS += -DCONFIG_GPIO_AS_PINRESET
+ASMFLAGS += -DNRF52_PAN_64
+ASMFLAGS += -DNRF52_PAN_55
+ASMFLAGS += -DNRF52_PAN_62
+ASMFLAGS += -DNRF52_PAN_63
+ASMFLAGS += -DBOARD_PCA10040
+ASMFLAGS += -DNRF52
+ASMFLAGS += -DBSP_DEFINES_ONLY
 #default target - first one defined
-default: clean nrf51422_xxac
+default: clean nrf52832_xxac
 
 #building all targets
 
 all: clean
 	$(NO_ECHO)$(MAKE) -f $(MAKEFILE_NAME) -C $(MAKEFILE_DIR) -e cleanobj
-	$(NO_ECHO)$(MAKE) -f $(MAKEFILE_NAME) -C $(MAKEFILE_DIR) -e nrf51422_xxac
+	$(NO_ECHO)$(MAKE) -f $(MAKEFILE_NAME) -C $(MAKEFILE_DIR) -e nrf52832_xxac
 
 #target for printing all targets
 help:
 	@echo following targets are available:
-	@echo 	nrf51422_xxac
+	@echo 	nrf52832_xxac
 	@echo 	flash_softdevice
 
 
@@ -151,9 +181,9 @@ vpath %.s $(ASM_PATHS)
 
 OBJECTS = $(C_OBJECTS) $(ASM_OBJECTS)
 
-nrf51422_xxac: OUTPUT_FILENAME := nrf51422_xxac
-nrf51422_xxac: LINKER_SCRIPT=config/$(PROJECT_NAME)_gcc_nrf51.ld
-nrf51422_xxac: $(BUILD_DIRECTORIES) $(OBJECTS)
+nrf52832_xxac: OUTPUT_FILENAME := nrf52832_xxac
+nrf52832_xxac: LINKER_SCRIPT=config/$(PROJECT_NAME)_gcc_nrf52.ld
+nrf52832_xxac: $(BUILD_DIRECTORIES) $(OBJECTS)
 	@echo Linking target: $(OUTPUT_FILENAME).out
 	$(NO_ECHO)$(CC) $(LDFLAGS) $(OBJECTS) $(LIBS) -o $(OUTPUT_BINARY_DIRECTORY)/$(OUTPUT_FILENAME).out
 	$(NO_ECHO)$(MAKE) -f $(MAKEFILE_NAME) -C $(MAKEFILE_DIR) -e finalize
@@ -213,7 +243,7 @@ cleanobj:
 	$(RM) $(BUILD_DIRECTORIES)/*.o
 
 flash: $(MAKECMDGOALS)
-	@echo Flashing: $(OUTPUT_BINARY_DIRECTORY)/nrf51422_xxac.hex
-	nrfjprog --program $(OUTPUT_BINARY_DIRECTORY)/nrf51422_xxac.hex -f nrf51  --chiperase
+	@echo Flashing: $(OUTPUT_BINARY_DIRECTORY)/nrf52832_xxac.hex
+	nrfjprog --program $(OUTPUT_BINARY_DIRECTORY)/nrf52832_xxac.hex -f nrf52  --chiperase
 	nrfjprog --reset
 
