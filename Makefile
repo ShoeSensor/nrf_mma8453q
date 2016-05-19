@@ -55,8 +55,8 @@ $(abspath $(SDK_ROOT)/components/libraries/util/app_util_platform.c) \
 $(abspath $(SDK_ROOT)/components/libraries/util/nrf_assert.c) \
 $(abspath $(SDK_ROOT)/components/libraries/uart/retarget.c) \
 $(abspath $(SDK_ROOT)/components/libraries/uart/app_uart_fifo.c) \
-$(abspath $(SDK_ROOT)/components/drivers_nrf/delay/nrf_delay.c) \
 $(abspath $(SDK_ROOT)/components/drivers_nrf/common/nrf_drv_common.c) \
+$(abspath $(SDK_ROOT)/components/drivers_nrf/gpiote/nrf_drv_gpiote.c) \
 $(abspath $(SDK_ROOT)/components/drivers_nrf/twi_master/nrf_drv_twi.c) \
 $(abspath $(SDK_ROOT)/components/drivers_nrf/uart/nrf_drv_uart.c) \
 
@@ -68,7 +68,7 @@ INC_PATHS += -I$(abspath $(SDK_ROOT)/examples/bsp)
 INC_PATHS += -I$(abspath $(SDK_ROOT)/components/drivers_nrf/nrf_soc_nosd)
 INC_PATHS += -I$(abspath $(SDK_ROOT)/components/device)
 INC_PATHS += -I$(abspath $(SDK_ROOT)/components/libraries/uart)
-INC_PATHS += -I$(abspath $(SDK_ROOT)/components/libraries/button)
+INC_PATHS += -I$(abspath $(SDK_ROOT)/components/drivers_nrf/gpiote)
 INC_PATHS += -I$(abspath $(SDK_ROOT)/components/drivers_nrf/hal)
 INC_PATHS += -I$(abspath $(SDK_ROOT)/components/drivers_nrf/delay)
 INC_PATHS += -I$(abspath $(SDK_ROOT)/components/libraries/util)

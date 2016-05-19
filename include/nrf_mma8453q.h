@@ -36,6 +36,10 @@
 extern "C" {
 #endif
 
+#ifndef DRDY_PIN
+#define DRDY_PIN 29
+#endif
+
 #define REG_STATUS              0x00 /**<(R) Real time status*/
 #define REG_OUT_X_MSB           0x01 /**<(R) [7:0] are 8 MSBs of 10-bit sample*/
 #define REG_OUT_X_LSB           0x02 /**<(R) [7:6] are 2 LSBs of 10-bit sample*/

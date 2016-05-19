@@ -26,12 +26,14 @@
 #include "app_error.h"
 #include "nrf_delay.h"
 #include "nrf_drv_config.h"
+#include "nrf_drv_gpiote.h"
 #include "nrf_drv_twi.h"
 #include "nrf_error.h"
 
 #define CONVERT_PRIORITY(id)    CONCAT_3(TWI, id, _CONFIG_IRQ_PRIORITY)
 
 static uint8_t accelBuf[6];
+static drv_accelHandle_t gpioHandle = NULL;
 
 static nrf_drv_twi_t twiInstances[TWI_COUNT] = {
         NRF_DRV_TWI_INSTANCE(0)
@@ -71,6 +73,11 @@ static void twiEventHandler(const nrf_drv_twi_evt_t *event, void *context)
             }
         }
     }
+}
+
+static void dataReadyHandler(nrf_drv_gpiote_pin_t pin, nrf_gpiote_polarity_t action)
+{
+    drv_accelRead(gpioHandle);
 }
 
 static uint32_t setStandby(drv_accelHandle_t handle)
@@ -121,6 +128,22 @@ static void accelReInit(drv_accelHandle_t handle)
     nrf_drv_twi_enable(&handle->instance);
 }
 
+static uint32_t gpioteInit()
+{
+    uint32_t errCode;
+    errCode = nrf_drv_gpiote_init();
+    if(errCode != NRF_SUCCESS)
+        return errCode;
+
+    nrf_drv_gpiote_in_config_t inConf = GPIOTE_CONFIG_IN_SENSE_LOTOHI(false);\
+
+    errCode = nrf_drv_gpiote_in_init(DRDY_PIN, &inConf, dataReadyHandler);
+    if(errCode != NRF_SUCCESS)
+        return errCode;
+    nrf_drv_gpiote_in_event_enable(DRDY_PIN, true);
+    return NRF_SUCCESS;
+}
+
 void drv_accelEnable(drv_accelHandle_t handle)
 {
     nrf_drv_twi_enable(&handle->instance);
@@ -150,6 +173,9 @@ drv_accelHandle_t drv_accelNew(drv_accelConfig_t *conf,
         errCode = setReg(handle, (uint8_t[]){REG_CTRL_REG4, INT_EN_DRDY});
         if(errCode != NRF_SUCCESS)
             return NULL;
+        if(gpioteInit() != NRF_SUCCESS)
+            return NULL;
+        gpioHandle = handle;
     }
     // Resolution
     errCode = nrf_drv_twi_tx(&handle->instance, handle->address,
