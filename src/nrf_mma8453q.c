@@ -161,7 +161,8 @@ drv_accelHandle_t drv_accelNew(drv_accelConfig_t *conf,
     nrf_drv_twi_config_t twiConf = twiConfigs[conf->id];
     handle->conf = twiConf;
     handle->instance = twiInstances[conf->id];
-    nrf_drv_twi_init(&handle->instance, &twiConf, NULL, NULL);
+    nrf_drv_twi_init(&handle->instance, &twiConf, twiEventHandler, NULL);
+    nrf_drv_twi_enable(&handle->instance);
     errCode = setStandby(handle);
     if(errCode != NRF_SUCCESS)
         return NULL;

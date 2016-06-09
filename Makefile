@@ -152,6 +152,8 @@ ASMFLAGS += -DNRF52_PAN_63
 ASMFLAGS += -DBOARD_PCA10040
 ASMFLAGS += -DNRF52
 ASMFLAGS += -DBSP_DEFINES_ONLY
+ASMFLAGS += -DSWI_DISABLE0
+
 #default target - first one defined
 default: clean nrf52832_xxac
 
